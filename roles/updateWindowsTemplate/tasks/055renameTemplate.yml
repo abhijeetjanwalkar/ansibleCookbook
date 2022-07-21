@@ -1,0 +1,22 @@
+- name: Get VM '{{ vCenter.templateName }}'-new uuid
+  community.vmware.vmware_guest_info:
+    hostname: "{{ vCenter.server }}"
+    username: '{{ vCenter_user }}'
+    password: '{{ vCenter_user_pass }}'
+    datacenter: '{{ vCenter.dataCenter }}'
+    folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+    name: '{{ vCenter.templateName }}-new'
+    validate_certs: false
+  register: vm_facts
+  delegate_to: localhost
+
+- name: Rename '{{ vCenter.templateName }}'-new to '{{ vCenter.templateName }}'
+  community.vmware.vmware_guest:
+    hostname: "{{ vCenter.server }}"
+    username: '{{ vCenter_user }}'
+    password: '{{ vCenter_user_pass }}'
+    validate_certs: False
+    cluster: '{{ vCenter.cluster }}'
+    uuid: "{{ vm_facts.instance.hw_product_uuid }}"
+    name: "{{ vCenter.templateName }}"
+  delegate_to: localhost

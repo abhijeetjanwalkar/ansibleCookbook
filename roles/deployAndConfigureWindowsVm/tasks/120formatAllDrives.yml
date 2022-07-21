@@ -1,0 +1,36 @@
+---
+- name: Initialize all disks
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_args: '-command (Get-Disk | where PartitionStyle -eq raw | Initialize-Disk -PartitionStyle GPT )'
+    wait_for_process: true
+  delegate_to: localhost
+  register: initilizeDisk_output
+
+- name: Format all disks
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_args: '-command (New-Partition -DiskNumber {{ item.disk_number }} -DriveLetter {{ item.drive_letter }}  -UseMaximumSize  | Format-Volume -FileSystem {{ item.file_system }} -NewFileSystemLabel {{ item.new_label }} -AllocationUnitSize  {{ item.allocation_unit_size }} )'
+    wait_for_process: true
+  loop:  "{{ vm_disks_format }}"
+  delegate_to: localhost
+  register: formatDisk_output
+

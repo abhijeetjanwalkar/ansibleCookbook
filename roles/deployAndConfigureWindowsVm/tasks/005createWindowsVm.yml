@@ -1,0 +1,67 @@
+---
+- name: Create VM '{{ vm.Name }}' from Template '{{ vCenter.templateName }}'
+  community.vmware.vmware_guest:
+    hostname: "{{ vCenter.server }}"
+    username: '{{ vCenter_user }}'
+    password: '{{ vCenter_user_pass }}'
+    validate_certs: false
+    datacenter: '{{ vCenter.dataCenter }}'
+    state: poweredon
+    template: '{{ vCenter.templateName }}'
+   # cluster: '{{ vCenter.cluster }}' # using esxi_hostname in lab instead of cluster for adding VMs in right cluster.
+    esxi_hostname: "atvies992z5v02.admingate.local"
+    datastore: '{{ vCenter.datastore }}'
+    folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+  # resource_pool: '{{ vCenter.resourcePool }}'
+    name: '{{ vm.Name }}'
+    hardware:
+      memory_mb: '{{ vm.Memory }}'
+      num_cpus: '{{ vm.Cpu }}'
+      num_cpu_cores_per_socket: '{{ vm.Num_Cpu_Cores_Per_Socket }}'
+    disk: "{{ vm_disks }}"
+    networks: "{{ vm_networks }}"
+    is_template: no
+    wait_for_customization: yes
+    wait_for_ip_address: yes
+    customization:
+      hostname: '{{ vm.Name }}'
+  register: deployVmResult
+  delegate_to: localhost
+
+- block:
+    - name: "end play When VM exists"
+      debug:
+        msg: 'The VM {{ vm.Name }}  already exists so ending the execution'
+
+    - meta: end_play
+  when: deployVmResult.changed == false and deployVmResult.failed == false
+
+- name: Reboot VM '{{ vm.Name }}'
+  community.vmware.vmware_guest:
+    hostname: "{{ vCenter.server }}"
+    username: '{{ vCenter_user }}'
+    password: '{{ vCenter_user_pass }}'
+    validate_certs: false
+    datacenter: '{{ vCenter.dataCenter }}'
+    state: restarted
+    folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+    name: '{{ vm.Name }}'
+    wait_for_ip_address: yes
+  delegate_to: localhost
+
+- name: wait 1 minute to reboot VM  
+  ansible.builtin.pause:
+    seconds: 60
+  delegate_to: localhost
+
+- name: Wait for VMware tools to become available after VM Reboot
+  community.vmware.vmware_guest_tools_wait:
+    hostname: "{{ vCenter.server }}"
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    name: '{{ vm.Name }}'
+    folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    validate_certs: false
+  delegate_to: localhost
+  register: rebootVmAfterDeployment

@@ -1,0 +1,25 @@
+---
+# tasks file for deployAndConfigureWindowsVm
+- import_tasks: 000checkVmExists.yml
+- import_tasks: 003copyInputFiletoArchieve.yml
+- import_tasks: 005createWindowsVm.yml
+- import_tasks: 010updateVmwareTools.yml
+#- import_tasks: 015sendEmailtoVmwareTeam.yml
+- import_tasks: 100updateRoutes.yml
+- import_tasks: 105joinDomain.yml
+- import_tasks: 110addDomainGroup.yml
+- import_tasks: 115changeCdromDriveLetter.yml
+- import_tasks: 120formatAllDrives.yml
+- import_tasks: 122registryEntriesToAdd.yml
+- import_tasks: 123disableFeatures.yml
+- import_tasks: 124jeaUserDiscovery.yml
+- import_tasks: 125installAgentSplunk.yml
+- import_tasks: 130installAgentNetworker.yml
+- import_tasks: 135installAgentUMF.yml
+- import_tasks: 140installAgentTennable.yml
+- import_tasks: 145installAgentZabbix.yml
+- import_tasks: 150installAgentBBSA.yml
+- import_tasks: 155installAgentSnow.yml
+- import_tasks: 160cleanTempFolder.yml
+- import_tasks: 165rebootVmAfteriInstallation.yml
+- import_tasks: 170sendEmailtoWindowsTeam.yml

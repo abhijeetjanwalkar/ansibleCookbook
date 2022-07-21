@@ -1,0 +1,54 @@
+---
+- name: copy JEA User Discovery files to PSHome Modules Directory
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\{{ JEAUserDiscovery.folder }}"
+    vm_shell_args: "-command (Copy 'c:\\Temp\\{{ JEAUserDiscovery.folder }}\\*' {{ JEAUserDiscovery.pshome }} -r )"
+    wait_for_process: true
+  delegate_to: localhost
+  register: copyJEAUserDiscoveryFiles_output
+
+- name: Register JEA User Discovery
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "{{ JEAUserDiscovery.pshome }}"
+    vm_shell_args: "-command (Register-PSSessionConfiguration -Name ServiceNow_jea -Path '{{ JEAUserDiscovery.pshome }}jea_disco.pssc' )"
+    wait_for_process: true
+  delegate_to: localhost
+  register: registerJEAUserDiscovery_output
+
+- name: Restart WINRM service
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\"
+    vm_shell_args: '-command "(Restart-Service -Name WINRM)"'
+    wait_for_process: true
+  delegate_to: localhost
+  register: restartWINRMService_output

@@ -1,0 +1,58 @@
+# variable file for updating Windows Server 2019 Template
+
+# to be deleted later
+vCenter_user: ansibledev@vsphere.local
+vCenter_user_pass: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+       
+          33346361396635626464356436363635666136653236303465653066343566343063
+          
+# vCenter Details where the Template is converted to VM for update
+vCenter:
+  server: ""
+  dataCenter: ""
+  cluster: ""
+  datastore: ""
+  vmFolder: ""
+  templateName: "W2k19-template-clone"
+  destinationDatastore: ""
+  host: ""
+
+# VM Details Hardware, IP address
+vm:
+  Memory: "4096" # in MB
+  Cpu: "2"
+
+vm_networks:
+- name: ""
+  ip: ""
+  netmask: "255.255.255.128"
+  gateway: ""
+  start_connected: yes
+  type: static
+  connected: yes
+  dns_servers:
+  - 
+  - 
+
+proxy:
+  server: 
+  port: 
+
+# Windows Template local user and encrypted password
+local:
+  userName: ""
+  userPassword: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+     
+          6561
+
+# SMTP server details and emails ID to receive notification of VM Deployment
+smtp:
+  server: 
+  port: 25
+  toEmailIdsVmwareTeam: # add the email ids who should receive emails once a VM is deployed from template
+  - 
+  toEmailIdsWindowsTeam: # add the email ids who should receive emails once a VM is configured.
+  - 
+  fromEmailId: noreply@ansible.net 

@@ -1,0 +1,20 @@
+---
+- name: Sending an e-mail to Windows OS Team
+  community.general.mail:
+    host: '{{ smtp.server }}'
+    port: '{{ smtp.port }}'
+    from: '{{ smtp.fromEmailId }}'
+    to: '{{ smtp.toEmailIdsWindowsTeam }}'
+    subject: Ansible-report VM Configured
+    body: |
+        System {{ vm.Name }} has been successfully installed and ready for Applications to be installed.
+        The system should run in the following Datacenter : {{ emailDetail.physicalDatacenter }}.
+        If needed, please add the VM to the corresponding DRS Group (DCN/DCS). 
+        The system needs to be moved to Storage Class : {{  emailDetail.storageClass }}.
+  delegate_to: localhost
+
+- name: show success message
+  debug: 
+    msg:
+      - 'Successfully deployed and configured {{ vm.Name }} based on the input parameters.'
+  delegate_to: localhost

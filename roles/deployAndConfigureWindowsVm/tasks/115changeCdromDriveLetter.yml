@@ -1,0 +1,17 @@
+---
+- name: Change CDRom Drive Letter from D to Z
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_args: "-command (Get-WmiObject -Class Win32_volume -Filter 'DriveLetter = ''D:''' |Set-WmiInstance -Arguments @{DriveLetter='Z:'})"
+    wait_for_process: true
+  delegate_to: localhost
+  register: changeCdromDriveLetter_output

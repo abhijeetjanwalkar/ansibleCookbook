@@ -1,0 +1,18 @@
+---
+# tasks file for updateWindowsTemplate
+
+- import_tasks: 000checkVmExists.yml
+- import_tasks: 005createWindowsVm.yml
+- import_tasks: 010updateVmwareTools.yml
+- import_tasks: 015enableProxy.yml
+- import_tasks: 020enableWINRM.yml
+- import_tasks: 025installUpdates.yml
+- import_tasks: 030RevertWINRM.yml
+- import_tasks: 035ResetProxy.yml
+- import_tasks: 040runSysprep.yml
+- import_tasks: 045shutdownVm.yml
+- import_tasks: 050deleteOldTemplate.yml
+- import_tasks: 055renameTemplate.yml
+- import_tasks: 060svmotion.yml
+- import_tasks: 065convertToTemplate.yml
+- import_tasks: 099sendEmailtoVmwareTeam.yml

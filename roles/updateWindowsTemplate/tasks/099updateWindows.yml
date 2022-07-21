@@ -1,0 +1,73 @@
+- name: attempt to install updates
+    block:
+      - name: Search-only, return list of found updates (if any)
+        win_updates:
+          category_names:
+            - SecurityUpdates
+            - CriticalUpdates
+          state: searched
+        register: result
+
+      - name: show the found updates
+        debug:
+          msg: "Found update count: {{ result.found_update_count }}"
+
+      - set_fact:
+          install: False
+        when: result.found_update_count == 0
+
+      - set_fact:
+          install: True
+        when: result.found_update_count > 0
+
+      - name: install all security, critical, and rollup updates
+        win_updates:
+          category_names:
+            - SecurityUpdates
+            - CriticalUpdates
+          reboot: yes
+          reboot_timeout: 3600
+        register: installed
+        when: install
+
+      - name: show installed updates
+        debug:
+          msg: "{{ installed.updates | to_nice_json }}"
+        when: install
+
+      - name: wait up to 2 hours for system to become reachable over WinRM
+        wait_for_connection:
+          timeout: 7200
+        register: time
+        when: install
+
+      - name: show reboot time
+        debug:
+          msg: "Reboot time was {{ time.elapsed }} seconds."
+        when: install
+
+    rescue:
+      - name: Show Error message
+        debug:
+          msg: "I caught an error. Please report exception to system administrator."
+
+      - name: Delete the newly deployed VM
+        community.vmware.vmware_guest:
+          hostname: "{{ vCenter.server }}"
+          username: '{{ vCenter_user }}'
+          password: '{{ vCenter_user_pass }}'
+          validate_certs: false
+          datacenter: '{{ vCenter.dataCenter }}'
+          template: '{{ vCenter.templateName }}'
+          cluster: '{{ vCenter.cluster }}' # using esxi_hostname in lab instead of cluster for adding VMs in right cluster.
+          #esxi_hostname: "atvies992z5v02.admingate.local"
+          datastore: '{{ vCenter.datastore }}'
+          folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+          name: '{{ vm.Name }}'
+          hardware:
+            memory_mb: '{{ vm.Memory }}'
+            num_cpus: '{{ vm.Cpu }}'
+          state: absent 
+          force: True
+        register: deployVmResult
+        delegate_to: localhost

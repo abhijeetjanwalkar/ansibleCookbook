@@ -1,0 +1,11 @@
+- name: Convert to template
+  community.vmware.vmware_guest:
+    hostname: "{{ vCenter.server }}"
+    username: '{{ vCenter_user }}'
+    password: '{{ vCenter_user_pass }}'
+    datacenter: '{{ vCenter.dataCenter }}'
+    folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+    name: '{{ vCenter.templateName }}'
+    validate_certs: false
+    is_template : yes
+  delegate_to: localhost

@@ -1,0 +1,178 @@
+# variable file for deploying and configuring Windows VM from template for customer PostAG
+# my defaults to avoind entering everytime to be deleted once everything is working.
+
+# vCenter Details where the VM will get deployed
+vCenter:
+  server: ""
+  dataCenter: ""
+  cluster: ""
+  datastore: ""
+  vmFolder: ""
+  templateName: "WIN2019std_gpp_6.0_tpl"
+  #templateName: "W2k19-template-clone"
+  # resourcePool: ""
+
+emailDetail:
+  physicalDatacenter: ''
+  storageClass: ''
+  
+# VM Details Hardware, IP address
+vm:
+  Name: "w2k19-test005"
+  Memory: "4096" # in MB
+  Cpu: "4"
+  Num_Cpu_Cores_Per_Socket: "2"  
+
+vm_networks:
+- name: "PG-Ansible-NoNIC"
+  ip: "10.20.30.110"
+  netmask: "255.255.255.0"
+  gateway: "10.20.30.1"
+  start_connected: yes
+  type: static
+  connected: yes
+  dns_servers:
+  - 10.20.30.100
+- name: "PG-Ansible-NoNIC-1"
+  ip: ""
+  netmask: "255.255.255.128"
+  connected: yes
+  start_connected: yes
+  type: static
+
+# Domain details to add VM and correct OU and Group to be added in Local administrators group
+domain:
+  name: "ansible.cb"
+  # following options pick any one of them
+  #   PostAG.intern
+  #   post.sapdom.at
+  ouPath: "OU=Servers,OU=Lab,DC=ansible,DC=cb"
+  # following options pick any one of them based on the requirement
+  #   PostAG.intern/Siemens/Server/Vollbetrieb/ApplVM/Test+Entw/  
+  #   PostAG.intern/Siemens/Server/Vollbetrieb/ApplVM/Prod/
+  #   post.sapdom.at/SAP/Test Server/     
+  #   post.sapdom.at/SAP/Productive Server
+  adminGroup: 'ansible\lab_admin'      # in the format domain\group name
+  # Post_Admins_AB 
+  addDomainUser: 'ansible\addToDomain'
+  addDomainUserPassword: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+         
+          6561
+
+# Windows Template local user and encrypted password
+local:
+  userName: ""
+  userPassword: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          
+          6561
+
+# If the VM has more than one disk add the details in following format.
+# increment unit_number start with 1 and avoid number 7 ("Invalid scsi disk unitNumber, valid 0-15(except 7).)
+vm_disks:
+  - { datastore: "", type: thin, size_gb: "5", unit_number: "1", controller_type: "paravirtual", controller_number: "0"}
+  - { datastore: "", type: thin, size_gb: "6", unit_number: "2", controller_type: "paravirtual", controller_number: "0"}
+  - { datastore: "", type: thin, size_gb: "7", unit_number: "3", controller_type: "paravirtual", controller_number: "0"}
+  #- { datastore: "Shared-Openshift-DCS-PMAX-1633-01-Gold", type: thin, size_gb: "5", unit_number: "4", controller_type: "paravirtual", controller_number: "0"}
+
+# This needs to be inline with the disks added in VM Deploy phase. Make sure the Disk sequence, number of disks are correct.
+
+vm_disks_format:
+  - { disk_number: '1', drive_letter: 'D', allocation_unit_size: '65536', file_system: 'NTFS', new_label: 'App', force: 'yes' }
+  - { disk_number: '2', drive_letter: 'E', allocation_unit_size: '65536', file_system: 'NTFS', new_label: 'logs', force: 'yes' }
+  - { disk_number: '3', drive_letter: 'F', allocation_unit_size: '65536', file_system: 'NTFS', new_label: 'backup', force: 'yes' }
+
+# Routes to add if more than 2 add then in following format if only one remove the 2nd line.
+
+routes:
+  - { route: '', mask: '255.255.255.224', dg: '' }
+  - { route: '', mask: '255.255.255.192', dg: '' }
+
+# Rune the  Just Enough Administration script provided by Customer PotAG
+JEAUserDiscovery:
+  folder: 'jea_disco'
+  pshome: 'C:\Windows\System32\WindowsPowerShell\v1.0\Modules\'
+  registerFile: jea_disco.pssc
+
+# add registry entries in deployed VM, all .reg files are kept under c:\temp\registryEntriesToAdd folder and the lines are added here.
+registryEntriesToAdd:
+  - { name: 'sslv3Deactivate.reg' }
+  - { name: 'tLSActiveOnly1.2.reg' }
+  
+# Agents configuration this will be mostly static, if any changes were done in Template those must be reflected here.
+agents:
+  nessus:
+    installer:
+      folder: "Tenable 10.1.3" 
+      file: "NessusAgent-10.1.3-x64.msi"
+    server: ""
+    groups: ""
+    key: ""
+  zabbix:
+    installer: 
+      folder: "Zabbix"
+      file: "zabbix_agent-4.0.13-windows-amd64-openssl.msi"
+    hostnamefqdn: "1"
+    server: ""
+    lport: "10050"
+    rmtcmd: "1"
+  splunk:
+    installer: 
+      folder: "PostAG_SplunkForwarder_8.2.5_Windows_x64_20220519"
+      script: "Install-SplunkUF.ps1"
+  snow:
+    installer: 
+      folder: "SNOW PostAG"
+      script: "InstallSnowAgent.bat"
+  umf:
+    installer: 
+      folder: 'NAGIOS KIT\NAGIOS'
+      script: "'install NEW.bat'"
+  bbsa: # no space in the folder or file name, update template accordingly.
+    installer: 
+      folder: 'BBSA_210201'
+      file: "RSCD210201-WIN64.msi"
+      userslocal: "users.local"
+      exports: "exports"
+    smartAgent: "0"
+  networker:
+    configureFirewall: "0" # to configure set 0 to not to configure set to 1
+    startServices: "1" # to start service set 1 to not to start service set to 0
+    pathToProgram: 'C:\Program Files\EMC NetWorker\nsr\res\'
+    installer:
+      folder: "nw19.5.0.5_win_x64"
+      files:
+        client: 'lgtoxtdclnt-19.5.0.5.exe'
+        networker: 'NetWorker-19.5.0.5.exe'
+        servers: 'servers'
+    nsrpath:
+      folder: 'PostAG NSR'
+      sql: 'NSR SQL'
+      nosql: 'NSR dir D'
+      filename: 'nsr.dir'
+  
+foldersToDelete: # list of files and folders to delete from c:\Temp folder
+  - { name: 'ATF-SCOM-2_AgentPackage_v2.7' }
+  - { name: 'BBSA_210201' }
+  - { name: "'NAGIOS KIT'" }
+  - { name: 'NagiosASECleanup' }
+  - { name: 'nw19.5.0.5_win_x64' }
+  - { name: "'PostAG NSR'" }
+  - { name: 'PostAG_SplunkForwarder_8.2.5_Windows_x64_20220519' }
+  - { name: 'SBSMaint2.1' }
+  - { name: "'SNOW PostAG'" }
+  - { name: "'Tenable 10.1.3'" }
+  - { name: 'Zabbix' }
+  - { name: 'registryEntriesToAdd' }
+  - { name: 'jea_disco' }
+  
+  # SMTP server details and emails ID to receive notification of VM Deployment
+smtp:
+  server: 192.138.228.163
+  port: 25
+  toEmailIdsVmwareTeam: # add the email ids who should receive emails once a VM is deployed from template
+  -
+    toEmailIdsWindowsTeam: # add the email ids who should receive emails once a VM is configured.
+  - 
+  fromEmailId: noreply@ansible.net

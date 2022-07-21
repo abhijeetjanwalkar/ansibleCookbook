@@ -1,0 +1,94 @@
+---
+- name: copy nsr.dir when SQL will be installed on the provisioned server
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\{{ agents.networker.nsrpath.folder }}"
+    vm_shell_args: "-command (Copy-item 'c:\\Temp\\{{ agents.networker.nsrpath.folder }}\\{{ agents.networker.nsrpath.sql }}\\{{ agents.networker.nsrpath.filename }}' -Destination {{ item.drive_letter }}:\\ -Force)"
+    wait_for_process: true
+  delegate_to: localhost
+  when: application_sql == "yes"
+  loop: "{{ vm_disks_format }}"
+  register: copySqlNsrFile_output
+
+- name: copy nsr.dir when SQL will not be installed on the provisioned server
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\{{ agents.networker.nsrpath.folder }}"
+    vm_shell_args: "-command (Copy-item 'c:\\Temp\\{{ agents.networker.nsrpath.folder }}\\{{ agents.networker.nsrpath.nosql }}\\{{ agents.networker.nsrpath.filename }}' -Destination {{ item.drive_letter }}:\\ -Force)"
+    wait_for_process: true
+  delegate_to: localhost
+  when: application_sql == "no"
+  loop: "{{ vm_disks_format }}"
+  register: copyNosqlNsrFile_output
+
+- name: Install Networker
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\{{ agents.networker.installer.folder }}"
+    vm_shell_args: '-command "(.\PsExec64.exe -accepteula .\{{ agents.networker.installer.files.networker }} /S /v /qn ConfigureFirewall={{ agents.networker.configureFirewall }} StartServices={{ agents.networker.startServices }} /norestart)"'
+    wait_for_process: true
+  delegate_to: localhost
+  register: installNetworker_output
+
+- name: Install Networker Client
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\{{ agents.networker.installer.folder }}"
+    vm_shell_args: '-command "(.\PsExec64.exe -accepteula .\{{ agents.networker.installer.files.client }} /S /v /qn ConfigureFirewall={{ agents.networker.configureFirewall }} StartService={{ agents.networker.startServices }} /norestart)"'
+    wait_for_process: true
+  delegate_to: localhost
+  register: installNetworkerClient_output
+
+- name: Copy servers file
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\{{ agents.networker.installer.folder }}"
+    vm_shell_args: "-command (Copy-item c:\\Temp\\{{ agents.networker.installer.folder }}\\{{ agents.networker.installer.files.servers }} -Destination '{{ agents.networker.pathToProgram }}' -Force)"
+    wait_for_process: true
+  delegate_to: localhost
+  register: installNetworkerClient_output

@@ -1,0 +1,15 @@
+localhost
+
+[windows]
+
+193.186.254.103
+
+[windows:vars]
+ansible_connection=winrm
+ansible_winrm_transport=basic
+ansible_winrm_server_cert_validation=ignore
+ansible_user=eoc_ro
+ansible_become_user=eoc_ro
+ansible_become_method=runas
+ansible_winrm_scheme='http'
+ansible_port='5985'

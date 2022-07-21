@@ -1,0 +1,34 @@
+---
+- name: Join server to Domain {{ domain.name }}
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_args: '-command (netdom join /d:{{ domain.name }} {{ vm.Name }} /OU:{{ domain.ouPath }} /ud:{{ domain.addDomainUser }} /pd:{{ domain.addDomainUserPassword }} /reboot)'
+    wait_for_process: true
+  delegate_to: localhost
+  register: domainJoin_output
+
+- name: wait 1 minute to reboot VM  
+  ansible.builtin.pause:
+    seconds: 60
+  delegate_to: localhost
+
+- name: Wait for VMware tools to become available after reboot
+  community.vmware.vmware_guest_tools_wait:
+    hostname: "{{ vCenter.server }}"
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    name: '{{ vm.Name }}'
+    folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    validate_certs: false
+  delegate_to: localhost
+  register: rebootVmAfterDomainJoin

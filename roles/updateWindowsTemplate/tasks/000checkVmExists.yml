@@ -1,0 +1,25 @@
+- name: Gather info for Template '{{ vCenter.templateName  }}-new'
+  community.vmware.vmware_guest_info:
+    hostname: "{{ vCenter.server }}"
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: '{{ vCenter.dataCenter }}'
+    schema: "vsphere"
+    name: '{{ vCenter.templateName }}-new'
+    validate_certs: false
+    properties:
+      - _moId
+  delegate_to: localhost
+  register: vm_moId
+  ignore_errors: yes
+
+- block:
+    - name: end play When VM exists
+      debug:
+        msg: 'The VM {{ vCenter.templateName }}-new  already exists so ending the execution'
+        
+    - meta: end_play
+  when: vm_moId.failed == false
+  
+- debug:
+    msg: 'The VM {{ vCenter.templateName }}-new does not exist hence playbook will continue'

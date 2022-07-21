@@ -1,0 +1,11 @@
+- name: Delete Old Template named VM '{{ vCenter.templateName }}'
+  community.vmware.vmware_guest:
+    hostname: "{{ vCenter.server }}"
+    username: '{{ vCenter_user }}'
+    password: '{{ vCenter_user_pass }}'
+    validate_certs: false
+    datacenter: '{{ vCenter.dataCenter }}'
+    state: absent
+    folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+    name: '{{ vCenter.templateName }}'
+  delegate_to: localhost

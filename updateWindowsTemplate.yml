@@ -1,0 +1,33 @@
+---
+#author:  Abhijeet Janwalkar
+#date:    31-05-2022
+#version:   0.1
+#description: Playbook to deploy a Windows VM from Template
+#Changelog:
+# 31-05-2022 - Initial code to deploy a Windows VM from template
+
+- name: Create a Windows VM from template by running role
+  hosts: windows
+  any_errors_fatal: false
+  gather_facts: false
+ # ignore_unreachable: yes
+  
+  vars_files:
+    #- "{{ input_file }}"
+    #- /home/ansible/code/templateW2k19UpdateConfigInput.yml
+
+  #vars_prompt:
+    #- name: "vCenter_user"
+      #prompt: "Enter Username to Deploy VM in vCenter"
+      #private: no
+    #- name: "vCenter_user_pass"
+      #prompt: "Enter Password for the above User"
+      #private: yes
+    #- name: "input_file"
+      #prompt: 'Enter location of input file to be used to deploy this VM like "\home\ansible\vmname.yml"'
+      #private: no
+
+  tasks:
+  - name: "Running Role: updateWindowsTemplate on template {{ vCenter.templateName  }}"
+    include_role:
+      name: updateWindowsTemplate

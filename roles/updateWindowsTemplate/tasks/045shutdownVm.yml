@@ -1,0 +1,16 @@
+- name: Shutdown VM '{{ vCenter.templateName }}-new'
+  community.vmware.vmware_guest:
+    hostname: "{{ vCenter.server }}"
+    username: '{{ vCenter_user }}'
+    password: '{{ vCenter_user_pass }}'
+    validate_certs: false
+    datacenter: '{{ vCenter.dataCenter }}'
+    state: shutdownguest
+    folder: "/{{ vCenter.dataCenter }}{{ vCenter.vmFolder }}"
+    name: '{{ vCenter.templateName }}-new'
+  delegate_to: localhost
+
+- name: wait 2 minute to shtdown VM  
+  ansible.builtin.pause:
+    seconds: 120
+  delegate_to: localhost

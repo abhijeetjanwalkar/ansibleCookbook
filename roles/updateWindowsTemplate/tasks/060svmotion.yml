@@ -1,0 +1,10 @@
+- name: Perform storage vMotion of new template
+  community.vmware.vmware_vmotion:
+    hostname: '{{ vCenter.server }}'
+    username: '{{ vCenter_user }}'
+    password: '{{ vCenter_user_pass }}'
+    vm_name: '{{ vCenter.templateName }}'
+    validate_certs: false
+    destination_datastore: '{{ vCenter.destinationDatastore }}'
+    destination_host: '{{ vCenter.host }}'
+  delegate_to: localhost

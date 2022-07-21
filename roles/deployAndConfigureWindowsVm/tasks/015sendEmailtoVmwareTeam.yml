@@ -1,0 +1,22 @@
+---
+- name: Sending an e-mail to VMware Team
+  community.general.mail:
+    host: '{{ smtp.server }}'
+    port: '{{ smtp.port }}'
+    from: '{{ smtp.fromEmailId }}'
+    to: '{{ smtp.toEmailIdsVmwareTeam }}'
+    subject: Ansible-report VM Deployed
+    body: |
+        System {{ vm.Name }} has been successfully provisioned. 
+        The system needs to be moved to Datacenter {{ emailDetail.physicalDatacenter }}.
+        The system needs to be moved to storage class {{  emailDetail.storageClass }}.
+        
+  when: deployVmResult.changed == true and deployVmResult.failed == false
+  delegate_to: localhost
+
+- name: show success message
+  debug: 
+    msg:
+      - 'Successfully deployed {{ vm.Name }} based on the input parameters, now proceeding with configuring the OS.'
+  when: deployVmResult.changed == true and deployVmResult.failed == false
+  delegate_to: localhost

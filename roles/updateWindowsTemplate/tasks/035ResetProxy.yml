@@ -1,0 +1,18 @@
+---
+- name: Reset Proxy
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: '{{ vCenter.templateName }}-new'
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: 'C:\Windows\'
+    vm_shell_args: "-command (netsh winhttp reset proxy)"
+    wait_for_process: true
+  delegate_to: localhost
+  register:  resetProxy_output

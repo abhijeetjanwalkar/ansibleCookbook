@@ -1,0 +1,16 @@
+---
+- name: Sending an e-mail to VMware Team
+  community.general.mail:
+    host: '{{ smtp.server }}'
+    port: '{{ smtp.port }}'
+    from: '{{ smtp.fromEmailId }}'
+    to: '{{ smtp.toEmailIdsVmwareTeam }}'
+    subject: Ansible-report Monthly Windows Template Patching
+    body: The Template '{{ vCenter.templateName }}' is successfully updated to latest Microsoft Patches.
+  delegate_to: localhost
+
+- name: show success message
+  debug: 
+    msg:
+      - 'The Template {{ vCenter.templateName }} is successfully updated to latest Microsoft Patches.'
+  delegate_to: localhost 

@@ -1,0 +1,7 @@
+---
+- name: make copy of input file for reference and Archival purpose
+  ansible.builtin.copy:
+    src: "{{ input_file }}"
+    dest: /tmp/{{ vm.Name }}.yml
+    owner: ansible
+  delegate_to: localhost

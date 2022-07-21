@@ -1,0 +1,18 @@
+---
+- name: Install UMF Agent
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: 'C:\temp\{{ agents.umf.installer.folder }}'
+    vm_shell_args: '-command (.\{{ agents.umf.installer.script }})'
+    wait_for_process: true
+  delegate_to: localhost
+  register: installAgentUmf_output

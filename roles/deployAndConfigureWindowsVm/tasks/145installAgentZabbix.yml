@@ -1,0 +1,82 @@
+---
+- name: Install MSI  - Zabbix Agent
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter}}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\{{ agents.zabbix.installer.folder }}\\"
+    vm_shell_args: '-command "(.\PsExec64.exe -accepteula msiexec.exe /i {{ agents.zabbix.installer.file }} HOSTNAMEFQDN={{ agents.zabbix.hostnamefqdn }} SERVER={{ agents.zabbix.server}} LPORT={{ agents.zabbix.lport }} RMTCMD={{ agents.zabbix.rmtcmd }} /qn)"'
+    wait_for_process: true
+  delegate_to: localhost
+  register: installMsiAgentZabbix_output
+
+- name: update zabbix_agentd.conf with correct hostname
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "c:\\Temp\\{{ agents.zabbix.installer.folder }}\\"
+    vm_shell_args: "-command (Get-Content -Path 'c:\\Temp\\Zabbix\\zabbix_agentd.conf' | ForEach-Object {$_ -Replace 'FILLINHOSTNAME', '{{ vm.Name }}' } | Set-Content -Path 'c:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf')"
+    wait_for_process: true
+  delegate_to: localhost
+  register: updateZabbixAgentdConfig_output
+
+- name: Install Agent - Zabbix
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "C:\\program files\\zabbix Agent\\"
+    vm_shell_args: '-command (.\zabbix_agentd.exe -c zabbix_agentd.conf --install)'
+    wait_for_process: true
+  delegate_to: localhost
+  register: installAgentZabbix_output
+
+- name: wait 30 seconds to get Zabbix agent installed 
+  ansible.builtin.pause:
+    seconds: 30
+  delegate_to: localhost
+
+- name: Start Agent - Zabbix
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vCenter.server }}"
+    validate_certs: false
+    username: "{{ vCenter_user }}"
+    password: "{{ vCenter_user_pass }}"
+    datacenter: "{{ vCenter.dataCenter }}"
+    folder: "/{{ vCenter.dataCenter }}/vm"
+    vm_id: "{{ vm.Name }}"
+    vm_username: "{{ local.userName }}"
+    vm_password: "{{ local.userPassword }}"
+    vm_shell: 'c:\windows\system32\windowspowershell\v1.0\powershell.exe'
+    vm_shell_cwd: "C:\\program files\\zabbix Agent\\"
+    vm_shell_args: '-command (.\zabbix_agentd.exe --start)'
+    wait_for_process: true
+  delegate_to: localhost
+  register: startAgentZabbix_output
+
+- name: wait 30 seconds to get Zabbix agent strated
+  ansible.builtin.pause:
+    seconds: 30
+  delegate_to: localhost

@@ -1,0 +1,53 @@
+---
+- name: Attempt 1 - Install all updates and reboot as many times as needed
+  ansible.windows.win_updates:
+    category_names: '*'
+    reboot: yes
+    reboot_timeout: 14400
+    state: installed
+    log_path: C:\temp\ansible.txt
+    server_selection: windows_update
+  register: attempt01_result
+ 
+- name: show result
+  debug:
+    msg: "{{ attempt01_result }}" 
+
+  #ignore_errors: yes
+  #ignore_unreachable: yes
+#
+#- name: Attempt 1 - Wait for system to become reachable over WinRM
+  #ansible.builtin.wait_for_connection:
+    #sleep: 5
+    #delay: 30
+    #connect_timeout: 120
+    #timeout: 3600
+  #register: result
+#
+#- name: Attempt 2 - Install all updates and reboot as many times as needed
+  #ansible.windows.win_updates:
+    #category_names: '*'
+    #reboot: yes
+    #reboot_timeout: 14400
+    #state: installed
+    #log_path: C:\temp\ansible.txt
+    #server_selection: windows_update
+  #ignore_errors: yes
+  #ignore_unreachable: yes
+#
+#- name: Attempt 2 - Wait for system to become reachable over WinRM
+  #ansible.builtin.wait_for_connection:
+    #sleep: 5
+    #delay: 30
+    #connect_timeout: 120
+    #timeout: 3600
+  #register: result
+#
+#- name: Attempt 3 - Install all updates and reboot as many times as needed
+  #ansible.windows.win_updates:
+    #category_names: '*'
+    #reboot: yes
+    #reboot_timeout: 14400
+    #state: installed
+    #log_path: C:\temp\ansible.txt
+    #server_selection: windows_update
